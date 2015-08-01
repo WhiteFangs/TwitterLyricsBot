@@ -18,51 +18,73 @@ $artistWikiaLink = "LYRICS_WIKIA_ARTIST_PAGE"; // For example, for Manchester Or
 $artistLink = substr(strrchr( $artistWikiaLink, '/' ), 1);
 $artistPage = getCURLOutput($artistWikiaLink);
 $artistXpath = getDOMXPath($artistPage);
-$songs = $artistXpath->query('//b/a[starts-with(@href, "/'.$artistLink.':") and not(contains(@href, "?action=edit"))]');
+$songsNodes = $artistXpath->query('//b/a[starts-with(@href, "/'.$artistLink.':") and not(contains(@href, "?action=edit"))]');
 
-// Take random song
-if($songs->length > 0){
-  $idx = intval(rand(0, $songs->length - 1));
-  $songAttrHref = $songs->item($idx)->getAttribute("href");
-  $songAttrTitle = $songs->item($idx)->getAttribute("title");
-  $artistName = substr($songAttrTitle, 0 , strrpos($songAttrTitle, ":"));
-  $songName = substr($songAttrTitle, strrpos($songAttrTitle, ":") + 1);
-  $lyricsLink = "http://lyrics.wikia.com" . $songAttrHref;
 
-  // Get the lyrics and credits
-  $lyricsPage = getCURLOutput($lyricsLink);
-  $lyricsXpath = getDOMXPath($lyricsPage);
-  $lyricsQuery = $lyricsXpath->query('//div[@class="lyricbox"]/text()');
-  $creditsQuery = $lyricsXpath->query('//div[@class="song-credit-box"]/text()');
-  for($i = 0; $i < $lyricsQuery->length; $i++){
-    $lyrics .= $lyricsQuery->item($i)->nodeValue;
-    $lyrics .= "\n";
+if($songsNodes->length > 0){
+  // Create songs array to filter duplicate songs
+  $songs = array();
+  foreach($songsNodes as $node) {
+    $songs[] = $node->getAttribute("title") . '/href=' . $node->getAttribute("href");
   }
-  $lyrics = delete_all_between("(", ")", $lyrics);
+  $songs = array_values(array_filter(array_unique($songs)));
 
-  // Create the tweet between 1 and 4 sentences
-  $splitLyrics = explode("\n", $lyrics);
-  $sentences = intval(rand(1, 4));
-  do{
-    $tweet = "";
-    $counter = 0;
-    $randomIdx = intval(rand(0, count($splitLyrics)));
-    while($randomIdx < count($splitLyrics) && strlen($tweet . $splitLyrics[$randomIdx]) < 140 && $counter < $sentences){
-      $tweet .= "\n" . $splitLyrics[$randomIdx];
-      $randomIdx++;
-      $counter++;
+  $start = time();
+  $tweet = "";
+  // Checking time to prevent the script to run indefinitely
+  while(time()-$start < 300 && (strlen($tweet) < 20 || strlen($tweet) > 140)){
+    // Take a random song
+    $idx = intval(rand(0, count($songs) - 1));
+    $song = $songs[$idx];
+    $songAttrTitle = substr($song, 0, strrpos($song, "/href="));
+    $songAttrHref = substr($song, strrpos($song, "/href=") + strlen("/href="));
+    $artistName = substr($songAttrTitle, 0 , strrpos($songAttrTitle, ":"));
+    $songName = substr($songAttrTitle, strrpos($songAttrTitle, ":") + 1);
+    $lyricsLink = "http://lyrics.wikia.com" . $songAttrHref;
+
+    // Get the lyrics and credits
+    $lyricsPage = getCURLOutput($lyricsLink);
+    $lyricsXpath = getDOMXPath($lyricsPage);
+    $lyricsQuery = $lyricsXpath->query('//div[@class="lyricbox"]/text()');
+    $creditsQuery = $lyricsXpath->query('//div[@class="song-credit-box"]/text()');
+    for($i = 0; $i < $lyricsQuery->length; $i++){
+      $lyrics .= $lyricsQuery->item($i)->nodeValue;
+      $lyrics .= "\n";
     }
-  }while(strlen($tweet) < 20 || strlen($tweet) > 140);
+    $lyrics = delete_all_between("(", ")", $lyrics);
 
-  // Post the tweet
-  $postfields = array(
-      'status' =>  $tweet);
-  $url = "https://api.twitter.com/1.1/statuses/update.json";
-  $requestMethod = "POST";
-  $twitter = new TwitterAPIExchange($APIsettings);
-  echo $twitter->buildOauth($url, $requestMethod)
-                ->setPostfields($postfields)
-                ->performRequest();
+    // Create the tweet between 1 and 4 sentences
+    $splitLyrics = explode("\n", $lyrics);
+    $sentences = intval(rand(1, 4));
+    // Try to create a tweet, but if no success in 20 tries, take another random song
+    $tryCounter = 0;
+    do{
+      $tryCounter++;
+      $tweet = "";
+      $sentencesCounter = 0;
+      $randomIdx = intval(rand(0, count($splitLyrics)));
+      while($randomIdx < count($splitLyrics) && strlen($tweet . $splitLyrics[$randomIdx]) < 140 && $sentencesCounter < $sentences){
+        $tweet .= "\n" . $splitLyrics[$randomIdx];
+        $randomIdx++;
+        $sentencesCounter++;
+      }
+    }while((strlen($tweet) < 20 || strlen($tweet) > 140) && $tryCounter < 20);
+  }
+
+  // Check if the created tweet is satisfactory
+  if(!(strlen($tweet) < 20 || strlen($tweet) > 140)){
+    $tweet = trim($tweet, ",");
+
+    // Post the tweet
+    $postfields = array(
+        'status' =>  $tweet);
+    $url = "https://api.twitter.com/1.1/statuses/update.json";
+    $requestMethod = "POST";
+    $twitter = new TwitterAPIExchange($APIsettings);
+    echo $twitter->buildOauth($url, $requestMethod)
+                  ->setPostfields($postfields)
+                  ->performRequest();
+  }
 }
 
  ?>
