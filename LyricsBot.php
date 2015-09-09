@@ -1,5 +1,5 @@
 <?php
-include("helpers.php");
+include("LyricsBotHelpers.php");
 require_once('TwitterAPIExchange.php');
 header('Content-Type: text/html; charset=utf-8');
 
@@ -12,13 +12,13 @@ $APIsettings = array(
 );
 
 /** Set Lyrics Wikia Artist Page here **/
-$artistWikiaLink = "LYRICS_WIKIA_ARTIST_PAGE"; // For example, for Manchester Orchestra: http://lyrics.wikia.com/Manchester_Orchestra
+$artistWikiaLink = "LYRICS_WIKIA_ARTIST_PAGE"; // For example, for Manchester Orchestra: http://lyrics.wikia.com/wiki/Manchester_Orchestra
 
 // Get list of songs with lyrics from artist page
 $artistLink = substr(strrchr( $artistWikiaLink, '/' ), 1);
 $artistPage = getCURLOutput($artistWikiaLink);
 $artistXpath = getDOMXPath($artistPage);
-$songsNodes = $artistXpath->query('//b/a[starts-with(@href, "/'.$artistLink.':") and not(contains(@href, "?action=edit"))]');
+$songsNodes = $artistXpath->query('//b/a[starts-with(@href, "/wiki/'.$artistLink.':") and not(contains(@href, "?action=edit"))]');
 
 
 if($songsNodes->length > 0){
@@ -32,7 +32,7 @@ if($songsNodes->length > 0){
   $start = time();
   $tweet = "";
   // Checking time to prevent the script to run indefinitely
-  while(time()-$start < 300 && (strlen($tweet) < 20 || strlen($tweet) > 140)){
+  while(time() - $start < 300 && (strlen($tweet) < 20 || strlen($tweet) > 140)){
     // Take a random song
     $idx = intval(rand(0, count($songs) - 1));
     $song = $songs[$idx];
