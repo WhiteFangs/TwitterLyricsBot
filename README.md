@@ -4,14 +4,14 @@ A simple Twitter bot made in PHP that tweets random lyrics from a chosen artist
 ## Install
 
 - [Create a Twitter app](https://apps.twitter.com/) with your bot's account
-- Set access tokens in the `LyricsBot.php` file
+- Set access tokens in a  `twitterCredentials.php` file in the root folder
 - Go to [Lyrics Wikia](http://lyrics.wikia.com/) and find the desired artist's page, copy the URL
 - Set `$artistWikiaLink` variable in `LyricsBot.php` to the artist's lyrics wikia page URL you found
 - Create a CRON Job that runs `LyricsBot.php` whenever you want your bot to tweet
 
 ## Example
 
-[@MancOrchSays](https://twitter.com/MancOrchSays) is a Twitter bot that tweets random lyrics from Manchester Orchestra.
+[@MancOrchSays](https://twitter.com/MancOrchSays) and [@BiffySays](https://twitter.com/BiffySays) are Twitter bots that tweets random lyrics from Manchester Orchestra and Biffy Clyro.
 
 ## License
 The source code of this bot is available under the terms of the [MIT license](http://www.opensource.org/licenses/mit-license.php).
