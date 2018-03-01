@@ -11,7 +11,7 @@ A simple Twitter bot made in PHP that tweets random lyrics from a chosen artist
 
 ## How it works
 
-The program goes to the Wikia page of the chosen artist and picks a random song, then take an excerpt from the song's lyrics and tweets it. 
+The program goes to the Wikia page of the chosen artist and picks a random song, then takes an excerpt from the song's lyrics and tweets it. 
 
 ## Example
 
