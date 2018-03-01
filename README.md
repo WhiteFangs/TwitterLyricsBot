@@ -9,6 +9,10 @@ A simple Twitter bot made in PHP that tweets random lyrics from a chosen artist
 - Set `$artistWikiaLink` variable in `LyricsBot.php` to the artist's lyrics wikia page URL you found
 - Create a CRON Job that runs `LyricsBot.php` whenever you want your bot to tweet
 
+## How it works
+
+The program goes to the Wikia page of the chosen artist and picks a random song, then take an excerpt from the song's lyrics and tweets it. 
+
 ## Example
 
 [@MancOrchSays](https://twitter.com/MancOrchSays) and [@BiffySays](https://twitter.com/BiffySays) are Twitter bots that tweets random lyrics from Manchester Orchestra and Biffy Clyro.
